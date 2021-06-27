@@ -1,0 +1,17 @@
+version: 3.8
+services:
+  security:
+    build: . #表示当前目录下的Dockerfile
+    image: security
+    depends_on:
+      - redis
+      - mysql
+    ports:
+      - "8080:8080"
+    container_name: security2
+  redis:
+    image: redis
+    container_name: securityredis
+  mysql:
+    image: mysql:5.7
+    container_name: securitymysql
