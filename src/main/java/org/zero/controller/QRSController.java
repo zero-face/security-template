@@ -76,7 +76,7 @@ public class QRSController extends BaseController{
         response.getOutputStream().write(qrcode);
     }
 
-    @RequestMapping("/callback")
+    /*@RequestMapping("/ ")
     public void callback(HttpServletRequest request) throws BusinessException {
         String code = request.getParameter("code");
         //获取access_token
@@ -97,6 +97,6 @@ public class QRSController extends BaseController{
         String s = HttpUtil.get(userInfoUrl);
         System.out.println(JSON.parseObject(s));
 
-    }
+    }*/
 
 }

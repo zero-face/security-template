@@ -33,7 +33,6 @@ public class RedisConfig {
     //固定模板
     @Autowired
     private LettuceConnectionFactory lettuceConnectionFactory;
-
     @Bean
     public RedisTemplate<String,Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String,Object> template = new RedisTemplate<>();

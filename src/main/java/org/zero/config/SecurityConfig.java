@@ -3,23 +3,26 @@ package org.zero.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.authentication.*;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
 import org.zero.config.handler.*;
 
-import org.zero.config.interceptor.CustomizeAbstractSecurityInterceptor;
+
+import org.zero.config.service.UserNameDetailService;
+import org.zero.config.session.CustomizeSessionInformationExpiredStrategy;
 import org.zero.filter.UserNameAndJsonFilter;
+import org.zero.validator.code.ValidateImageCodeFilter;
+import org.zero.validator.smscode.SmsAuthenticationConfig;
+import org.zero.validator.smscode.SmsFilter;
 
 
 import javax.annotation.Resource;
@@ -35,8 +38,8 @@ import javax.sql.DataSource;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Resource
-    private UserDetailsService userdetailservice;
+    @Autowired
+    private UserNameDetailService userdetailservice;
 
     //未登录处理器（匿名访问无权限处理）
     @Autowired
@@ -65,8 +68,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private CustomizeLogoutSuccessHandler customizeLogoutSuccessHandler;
 
-    //访问决策管理器
     @Autowired
+    private ValidateImageCodeFilter validateImageCodeFilter;
+
+    @Autowired
+    private SmsFilter smsFilter;
+
+    @Autowired
+    private SmsAuthenticationConfig smsAuthenticationConfig;
+
+    //访问决策管理器
+  /*  @Autowired
     private CustomizeAccessDecisionManager customizeAccessDecisionManager;
 
     //安全源数据
@@ -75,7 +87,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     //权限拦截器
     @Autowired
-    private CustomizeAbstractSecurityInterceptor customizeAbstractSecurityInterceptor;
+    private CustomizeAbstractSecurityInterceptor customizeAbstractSecurityInterceptor;*/
 
     /**
      * 自动登录配置
@@ -127,28 +139,35 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         userNameAndJsonFilter.setAuthenticationFailureHandler(customizeAuthenticationFailureHandler);
         return userNameAndJsonFilter;
     }
+
     /**
      * 配置登录
      * @param http
      * @throws Exception
      */
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         //开启跨域以及关闭防护
         http.csrf().disable().cors();
         //注册自定义登录方式过滤器
-        http.addFilterBefore(loginFilter(), UsernamePasswordAuthenticationFilter.class)
+        http.addFilterBefore(loginFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(validateImageCodeFilter, loginFilter().getClass());
+        //短信验证顾虑器
+        http.addFilterBefore(smsFilter, ValidateImageCodeFilter.class);
+        //将短信验证码认证配置到spring security中
+        http.apply(smsAuthenticationConfig);
         //更改未登录或者登录过期默认跳转
-            .exceptionHandling().authenticationEntryPoint(customizeAuthenticationEntryPoint);
+        http.exceptionHandling().authenticationEntryPoint(customizeAuthenticationEntryPoint);
 
         //路径权限
         http.authorizeRequests()
-            .antMatchers("/api/v1/user/login","/doc.html","/aip/v1/qrs/cc","/aip/v1/qrs/bb","/api/v1/user/wechat")
+            .antMatchers("/api/v1/user/login","/doc.html"
+                    ,"/aip/v1/qrs/cc","/api/v1/user/mobile"
+                    ,"/api/v1/user/sms","/api/v1/user/image")
             .permitAll()
             .antMatchers("/usr/add").hasAnyAuthority("admin")
             .anyRequest().authenticated();
-        http.authorizeRequests()
+        /*http.authorizeRequests()
                 .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
                     @Override
                     public <O extends FilterSecurityInterceptor> O postProcess(O object) {
@@ -158,8 +177,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         object.setSecurityMetadataSource(customizeFilterInvocationSecurityMetadataSource);
                         return object;
                     }
-                });
-        http.addFilterBefore(customizeAbstractSecurityInterceptor, FilterSecurityInterceptor.class);
+                });*/
+//        http.addFilterBefore(customizeAbstractSecurityInterceptor, FilterSecurityInterceptor.class);
 
         //退出登录
         http.logout()
@@ -169,7 +188,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .formLogin()
             .successHandler(customizeAuthenticationSuccessHandler) //登录成功逻辑处理
             .failureHandler(customizeAuthenticationFailureHandler) //登录失败逻辑处理
-            .and().exceptionHandling()
+        .and()
+            .exceptionHandling()
             .accessDeniedHandler(customizeAccessDeniedHandler) //权限拒绝逻辑处理
             .authenticationEntryPoint(customizeAuthenticationEntryPoint) //匿名访问无权限访问资源异常处理
         //会话管理
@@ -178,5 +198,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .maximumSessions(1) //同一个用户最大的登录数量
             .expiredSessionStrategy(customizeSessionInformationExpiredStrategy); //异地登录（会话失效）处理逻辑
 
+    }
+
+    public SmsAuthenticationConfig getSmsAuthenticationConfig() {
+        return smsAuthenticationConfig;
     }
 }

@@ -37,11 +37,19 @@
           <artifactId>java-jwt</artifactId>
           <version>3.4.1</version>
       </dependency>
+      <!-- https://mvnrepository.com/artifact/org.springframework.social/spring-social-config -->
+      <dependency>
+          <groupId>org.springframework.social</groupId>
+          <artifactId>spring-social-config</artifactId>
+          <version>1.1.4.RELEASE</version>
+      </dependency>
+
       <dependency>
           <groupId>commons-lang</groupId>
           <artifactId>commons-lang</artifactId>
           <version>2.6</version>
       </dependency>
+      <!--二维码-->
       <dependency>
           <groupId>com.google.zxing</groupId>
           <artifactId>core</artifactId>
@@ -57,12 +65,14 @@
           <artifactId>hutool-all</artifactId>
           <version>5.7.2</version>
       </dependency>
+
       <!-- https://mvnrepository.com/artifact/com.github.xiaoymin/knife4j-spring-boot-starter -->
     <dependency>
         <groupId>com.github.xiaoymin</groupId>
         <artifactId>knife4j-spring-boot-starter</artifactId>
         <version>2.0.7</version>
     </dependency>
+
     <dependency>
         <groupId>org.springframework.plugin</groupId>
         <artifactId>spring-plugin-core</artifactId>
