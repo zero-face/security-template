@@ -1,4 +1,18 @@
-package org.zero.config.handler;
+package org.zero.config.dynamicpathaccess;/*
+package org.zero.config.dynamicpathaccess;
+
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Iterator;
+
+*/
 
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,6 +31,8 @@ import java.util.Iterator;
  * @Date 2021/6/24 0:05
  * @Since 1.8
  **/
+
+
 @Component
 public class CustomizeAccessDecisionManager implements AccessDecisionManager {
     @Override

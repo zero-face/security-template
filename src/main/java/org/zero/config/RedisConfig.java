@@ -1,26 +1,27 @@
 package org.zero.config;
 
-import com.alibaba.fastjson.parser.ParserConfig;
-import com.alibaba.fastjson.support.config.FastJsonConfig;
-import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
-import com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer;
+
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 /**
  * @Author Zero
@@ -30,31 +31,64 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 //@AutoConfigureAfter(RedisAutoConfiguration.class)
 public class RedisConfig {
-    //固定模板
-    @Autowired
+    @Resource
     private LettuceConnectionFactory lettuceConnectionFactory;
+
     @Bean
-    public RedisTemplate<String,Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String,Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(lettuceConnectionFactory);
-        //json序列化配置
+    public RedisTemplate<String, Object> redisTemplate() {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        //string序列化器
+        RedisSerializer<String> redisSerializer = new StringRedisSerializer();
+        //json序列化器
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
-        //string的序列化配置
-        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
-        //key采用string序列化方式
-        template.setKeySerializer(stringRedisSerializer);
-        //hash的key也采用string的序列化方式
-        template.setHashKeySerializer(stringRedisSerializer);
-        //hash的value的序列化方式采用Jackson
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        //必须设置，否则无法将JSON转化为对象，会转化成Map类型
+        om.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,ObjectMapper.DefaultTyping.NON_FINAL)
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+        //设置redis连接池
+        template.setConnectionFactory(lettuceConnectionFactory);
+        //key序列化方式：string 序列化方式
+        template.setKeySerializer(redisSerializer);
+        //value序列化 ： jackson序列化方式
         template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.afterPropertiesSet();
+        //hashmapkey：string序列化方式
+        template.setHashKeySerializer(redisSerializer);
+        //value hashmapvalue序列化 Jackson序列化方式
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
         return template;
     }
+
+    /**
+     * redis缓存管理
+     * @return
+     */
+    @Bean
+    public CacheManager cacheManager() {
+        RedisSerializer<String> redisSerializer = new StringRedisSerializer();
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        //解决查询缓存转换异常的问题
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+        // 配置序列化（解决乱码的问题）,过期时间600秒
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                //过期时间为一天
+                .entryTtl(Duration.ofSeconds(24*60*60))
+                //key的序列化方式是string
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer))
+                //value的序列化方式是Jackson2json
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
+                //不允许空值缓存
+                .disableCachingNullValues();
+        RedisCacheManager cacheManager = RedisCacheManager.builder(lettuceConnectionFactory)
+                .cacheDefaults(config)
+                .build();
+        return cacheManager;
+    }
+
 
 //    @Bean //此处有bug没有解决，疑似反序列化出现问题
 //    public RedisSerializer<Object> springSessionDefaultRedisSerializer() {

@@ -1,4 +1,4 @@
-package org.zero.config.handler;
+package org.zero.config.session;
 
 import com.alibaba.fastjson.JSON;
 import org.springframework.security.core.session.SessionRegistry;
@@ -24,10 +24,9 @@ public class CustomizeSessionInformationExpiredStrategy implements SessionInform
     public void onExpiredSessionDetected(SessionInformationExpiredEvent sessionInformationExpiredEvent) throws IOException, ServletException {
         //失效则踢出session
         SessionRegistry sessionRegistry = new SessionRegistryImpl();
-        final String sessionId = sessionInformationExpiredEvent.getRequest().getRequestedSessionId();
+        String sessionId = sessionInformationExpiredEvent.getRequest().getRequestedSessionId();
         sessionRegistry.getSessionInformation(sessionId).expireNow();
-        CommonReturnType result = CommonReturnType.fail(EmBusinessError.SERVICE_AUTHENTICATION_INVALID);
-        String currentSessionId = sessionInformationExpiredEvent.getRequest().getRequestedSessionId();
+        CommonReturnType result = CommonReturnType.fail("您的账号已经在别的地方登录，当前登录已失效。如果密码遭到泄露，请立即修改密码！");
         HttpServletResponse httpServletResponse = sessionInformationExpiredEvent.getResponse();
         httpServletResponse.setContentType("text/json;charset=utf-8");
         httpServletResponse.getWriter().write(JSON.toJSONString(result));

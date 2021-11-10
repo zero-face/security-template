@@ -1,45 +1,31 @@
-package org.zero.validator.code;
+package org.zero.validator.smscode;
 
-import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * @Author Zero
- * @Date 2021/7/2 0:29
+ * @Date 2021/7/4 15:23
  * @Since 1.8
- * @Description 图片验证码
+ * @Description TODO
  **/
-public class ImageCode implements Serializable {
-    //图片验证码
-    private BufferedImage image;
-    //验证码
+public class SmsCode implements Serializable {
     private String code;
-    //过期时间
+
     private LocalDateTime expireTime;
 
-    public ImageCode(BufferedImage image, String code, int expireIn) {
-        this.image = image;
+    public SmsCode(String code, int expireIn) {
         this.code = code;
         this.expireTime = LocalDateTime.now().plusSeconds(expireIn);
     }
 
-    public ImageCode(BufferedImage image, String code, LocalDateTime expireTime) {
-        this.image = image;
+    public SmsCode(String code, LocalDateTime expireTime) {
         this.code = code;
         this.expireTime = expireTime;
     }
 
-    public boolean isExpire() {
+    boolean isExpire() {
         return LocalDateTime.now().isAfter(expireTime);
-    }
-
-    public BufferedImage getImage() {
-        return image;
-    }
-
-    public void setImage(BufferedImage image) {
-        this.image = image;
     }
 
     public String getCode() {

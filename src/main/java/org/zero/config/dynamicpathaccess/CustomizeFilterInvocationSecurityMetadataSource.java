@@ -1,4 +1,4 @@
-package org.zero.config.handler;
+package org.zero.config.dynamicpathaccess;
 
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +18,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 /**
  * @Author Zero
  * @Description 实现一个安全源数据，来获取请求路径的所有权限
  * @Date 2021/6/23 22:06
  * @Since 1.8
  **/
+
 @Component
 public class CustomizeFilterInvocationSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
@@ -52,15 +54,17 @@ public class CustomizeFilterInvocationSecurityMetadataSource implements FilterIn
             return null;
         }
         List<SysPermission> permissionList = null;
-        permissionList = permissionIds.stream().map(permissionByPathId -> {
-                        SysPermission permission = null;
-                        try {
-                            permission = sysPermissionService.getPermissionByPermissionId(permissionByPathId);
-                        } catch (BusinessException e) {
-                            e.printStackTrace();
-                        }
-                        return permission;
-                    }).collect(Collectors.toList());
+        permissionList = permissionIds
+                .stream()
+                .map(permissionByPathId -> {
+                    SysPermission permission = null;
+                    try {
+                        permission = sysPermissionService.getPermissionByPermissionId(permissionByPathId);
+                    } catch (BusinessException e) {
+                        e.printStackTrace();
+                    }
+                    return permission;
+                }).collect(Collectors.toList());
         String[] attributes = new String[permissionList.size()];
         for(int i = 0; i < permissionList.size(); i++){
             attributes[i] = permissionList.get(i).getPermissionCode();

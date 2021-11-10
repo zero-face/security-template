@@ -1,5 +1,6 @@
 package org.zero.utils;
 
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -7,6 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.lang.StringUtils;
 import org.zero.core.error.BusinessException;
 import org.zero.core.error.EmBusinessError;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,7 +22,7 @@ import java.util.Map;
 public class JWTUtils {
 
     //生成token header payload sign
-    public static String createToken(Map<String,String> map, String SIGN) {
+    public static String createToken(Map<String,Object> map, String SIGN) {
         if(null == SIGN) {
             try {
                 throw new BusinessException(EmBusinessError.UNKNOWN_ERROR);
@@ -72,7 +74,7 @@ public class JWTUtils {
      * @param SIGN
      * @return
      */
-    public static DecodedJWT verifyToken(String token,String SIGN) {
+    public static DecodedJWT verifyToken(String token, String SIGN) {
         if(null == token) {
             try {
                 throw new BusinessException(EmBusinessError.TOKEN_NOT_EXIST);
@@ -108,7 +110,6 @@ public class JWTUtils {
      */
     public static Date parseExpiredTime(String token, String sign) throws BusinessException {
         return verifyToken(token, sign).getExpiresAt();
-
     }
 }
 

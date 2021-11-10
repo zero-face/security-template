@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.zero.entity.User;
 
+import java.util.Random;
 
 
 /**
@@ -35,5 +36,12 @@ public class AppTest {
 //        System.out.println(redisTemplate.opsForHash().get("ceshi", "htllo");
         System.out.println(redisTemplate.opsForValue().get("tt"));
 
+    }
+    @Test
+    public void rand() {
+        Random random = new Random();
+        for (int i = 0; i < 200; i++) {
+            System.out.println( "i:" +  i + "测试" + (char)i);
+        }
     }
 }

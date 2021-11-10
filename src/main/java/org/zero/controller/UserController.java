@@ -3,21 +3,18 @@ package org.zero.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
-import com.mysql.cj.log.Log;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.zero.core.response.CommonReturnType;
 import org.zero.entity.User;
 import org.zero.service.UserService;
-import org.zero.utils.CheckUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,10 +56,10 @@ public class UserController extends BaseController{
     }
 
 
-    @RequestMapping("/wechat")
+   /* @RequestMapping("/wechat")
     public void ownerCheck(Model model, HttpServletRequest request, HttpServletResponse response) throws IOException {
         System.out.println(111);
-        boolean isGet = request.getMethod().toLowerCase().equals("get");
+        boolean isGet = "get".equals(request.getMethod().toLowerCase());
         PrintWriter print;
         if (isGet) {
             // 微信加密签名
@@ -86,5 +83,5 @@ public class UserController extends BaseController{
             }
         }
     }
-
+*/
 }

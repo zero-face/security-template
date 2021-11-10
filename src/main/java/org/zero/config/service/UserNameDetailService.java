@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * @Since 1.8
  **/
 @Service("userdetailservice")
-public class MyDetailService implements UserDetailsService {
+public class UserNameDetailService implements UserDetailsService {
     @Autowired
     private UserMapper userMapper;
 
